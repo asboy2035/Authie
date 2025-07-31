@@ -7,8 +7,13 @@
   <h-stack>
     <NavigationButton
       link="/"
-      icon="solar:question-square-line-duotone"
-      text="No Navigation Links"
+      icon="solar:home-angle-line-duotone"
+      text="Home"
+    />
+    <NavigationButton
+      link="/settings"
+      icon="solar:settings-line-duotone"
+      text="Settings"
     />
   </h-stack>
 </template>
