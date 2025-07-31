@@ -28,7 +28,8 @@
     "vue": "^3.5.18",
     "vue-progressive-blur": "^1.0.2",
     "vue-router": "^4.5.1",
-    "pinia-plugin-persistedstate": "^3.2.1"
+    "pinia-plugin-persistedstate": "^3.2.1",
+    "otpauth": "^9.2.8"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
