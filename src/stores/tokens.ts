@@ -30,6 +30,30 @@ const asyncLocalStorage = {
   }
 }
 
+// Helper to derive a key from a passcode and salt
+const deriveKeyFromPasscodeAndSalt = async (passcode: string, salt: Uint8Array): Promise<CryptoKey> => {
+  const encoder = new TextEncoder()
+  const keyMaterial = await window.crypto.subtle.importKey(
+      'raw',
+      encoder.encode(passcode),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+  )
+  return window.crypto.subtle.deriveKey(
+      {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+  )
+}
+
 export const useTokensStore = defineStore(
   'tokens',
   () => {
@@ -47,7 +71,6 @@ export const useTokensStore = defineStore(
 
     const setPasscode = async (newPasscode: string) => {
       passcode.value = newPasscode
-      const encoder = new TextEncoder()
       let saltBase64 = localStorage.getItem('passcodeSalt')
       let salt: Uint8Array
       if (saltBase64) {
@@ -56,25 +79,7 @@ export const useTokensStore = defineStore(
         salt = window.crypto.getRandomValues(new Uint8Array(16))
         localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
       }
-      const keyMaterial = await window.crypto.subtle.importKey(
-          'raw',
-          encoder.encode(newPasscode),
-          { name: 'PBKDF2' },
-          false,
-          ['deriveKey']
-      )
-      encryptionKey.value = await window.crypto.subtle.deriveKey(
-          {
-              name: 'PBKDF2',
-              salt: salt,
-              iterations: 100000,
-              hash: 'SHA-256'
-          },
-          keyMaterial,
-          { name: 'AES-GCM', length: 256 },
-          true,
-          ['encrypt', 'decrypt']
-      )
+      encryptionKey.value = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
     }
 
     const addToken = (token: {
@@ -109,35 +114,67 @@ export const useTokensStore = defineStore(
       }
     }
 
-    const verifyPasscode = async (): Promise<boolean> => {
+    const verifyPasscode = async (testPasscode: string): Promise<boolean> => {
       const raw = await asyncLocalStorage.getItem('tokens')
       const saltBase64 = localStorage.getItem('passcodeSalt')
 
-      if (!raw || !encryptionKey.value || !saltBase64) {
+      if (!raw || !saltBase64) {
         // No tokens saved yet, so no way to verify. Assume valid for now.
         return true
       }
 
       try {
+        const salt = new Uint8Array(base64ToBuffer(saltBase64))
+        const testKey = await deriveKeyFromPasscodeAndSalt(testPasscode, salt)
+
         const { iv: ivBase64, data: dataBase64 } = JSON.parse(raw)
         const iv = base64ToBuffer(ivBase64)
         const data = base64ToBuffer(dataBase64)
 
-        // Try decrypting with current encryptionKey
         await window.crypto.subtle.decrypt(
           { name: 'AES-GCM', iv },
-          encryptionKey.value,
+          testKey,
           data
         )
-        // If no error, passcode is valid
         return true
       } catch (e) {
-        // Decryption failed -> invalid passcode
         return false
       }
     }
 
+    const reEncryptAndSetNewPasscode = async (newPasscode: string) => {
+      const encoder = new TextEncoder()
+      // Always generate a new random 16-byte salt
+      const salt = window.crypto.getRandomValues(new Uint8Array(16))
+      // Store the new salt in localStorage as base64
+      localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
+
+      const newDerivedKey = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
+
+      // Encrypt current tokens with the new key
+      const iv = window.crypto.getRandomValues(new Uint8Array(12))
+      const encoded = encoder.encode(JSON.stringify(tokens.value))
+
+      const encrypted = await window.crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        newDerivedKey,
+        encoded
+      )
+
+      const payload = {
+        iv: bufferToBase64(iv),
+        data: bufferToBase64(encrypted),
+      }
+
+      await asyncLocalStorage.setItem('tokens', JSON.stringify(payload))
+
+      // Update the in-memory key and passcode
+      encryptionKey.value = newDerivedKey
+      passcode.value = newPasscode
+    }
+
     watch(tokens, async (newTokens) => {
+      // Only save if an encryption key is present
       if (encryptionKey.value) {
         try {
           const iv = window.crypto.getRandomValues(new Uint8Array(12))
@@ -169,6 +206,7 @@ export const useTokensStore = defineStore(
       addToken,
       verifyPasscode,
       init,
+      reEncryptAndSetNewPasscode,
     }
   },
 )

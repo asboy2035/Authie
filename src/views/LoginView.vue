@@ -16,7 +16,7 @@
     error.value = ''
     try {
       await tokensStore.setPasscode(passcode.value.trim())
-      const valid = await tokensStore.verifyPasscode()
+      const valid = await tokensStore.verifyPasscode(passcode.value)
       if (!valid) {
         error.value = 'Invalid passcode.'
         tokensStore.encryptionKey = null
