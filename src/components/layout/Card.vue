@@ -24,7 +24,6 @@
   background: colors.$foregroundColor
   backdrop-filter: blur(2.5rem)
   z-index: 2
-  //overflow: hidden
 
   &::after // Specular Highlighting
       content: ""
@@ -65,21 +64,12 @@
       left: 1rem
 
       border-radius: var(--card-radius)
-      border: 0 solid colors.$shadowColor
       pointer-events: none
       transition: 0.2s ease
-      filter: blur(0.75rem)
 
   &:hover
     &::after
       opacity: 0.8
-
-    .cardShadowContainer
-      opacity: 0.4
-
-      .cardShadow
-        border-width: 1rem
-
 
   ::v-deep(img)
     max-width: 100%

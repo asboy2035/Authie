@@ -12,6 +12,7 @@
   .contentView
     display: flex
     flex-direction: column
+    align-items: flex-start
     width: calc(100vw - 3rem)
     max-width: 55rem
     min-height: 100vh

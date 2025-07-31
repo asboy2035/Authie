@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ash-vue.iml" filepath="$PROJECT_DIR$/.idea/ash-vue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/authie.iml" filepath="$PROJECT_DIR$/.idea/authie.iml" />
     </modules>
   </component>
 </project>

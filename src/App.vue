@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import {ProgressiveBlur} from 'vue-progressive-blur'
+  import { ProgressiveBlur } from 'vue-progressive-blur'
 </script>
 
 <template>
