@@ -28,34 +28,34 @@ a
   backdrop-filter: saturate(150%) blur(1rem)
 
   &::after // Specular Highlight
-      content: ""
-      position: absolute
-      top: 0
-      bottom: 0
-      right: 0
-      left: 0
+    content: ""
+    position: absolute
+    top: 0
+    bottom: 0
+    right: 0
+    left: 0
 
-      border: 0.1rem solid colors.$shadowColor
-      box-shadow: inset 0 0 0.5rem colors.$shadowColor
-      border-radius: var(--interior-radius)
-      opacity: 0.4
-      pointer-events: none
-      transition: 0.2s ease
-      mask: conic-gradient(from -45deg, black, rgba(0, 0, 0, 0.2), black, rgba(0, 0, 0, 0.2), black)
+    border: 0.1rem solid colors.$shadowColor
+    box-shadow: inset 0 0 0.5rem colors.$shadowColor
+    border-radius: var(--interior-radius)
+    opacity: 0.4
+    pointer-events: none
+    transition: 0.2s ease
+    mask: conic-gradient(from -45deg, black, rgba(0, 0, 0, 0.2), black, rgba(0, 0, 0, 0.2), black)
 
   &::before // Shadow
-      content: ""
-      position: absolute
-      top: 0
-      bottom: 0
-      right: 0
-      left: 0
+    content: ""
+    position: absolute
+    top: 0
+    bottom: 0
+    right: 0
+    left: 0
 
-      box-shadow: 0 0.5rem 0.5rem colors.$shadowColor
-      border-radius: var(--interior-radius)
-      opacity: 0.15
-      pointer-events: none
-      transition: 0.2s ease
+    box-shadow: 0 0.5rem 0.5rem colors.$shadowColor
+    border-radius: var(--interior-radius)
+    opacity: 0.15
+    pointer-events: none
+    transition: 0.2s ease
 
   &:hover
     &::before

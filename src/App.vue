@@ -1,5 +1,20 @@
 <script setup lang="ts">
   import { ProgressiveBlur } from 'vue-progressive-blur'
+  import { useTokensStore } from '@/stores/tokens'
+  import { onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
+
+  const tokensStore = useTokensStore()
+  const router = useRouter()
+
+  onMounted(async () => {
+    if (!tokensStore.passcode) {
+      await router.push('/login')
+      return
+    }
+
+    await tokensStore.init()
+  })
 </script>
 
 <template>

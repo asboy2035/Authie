@@ -9,11 +9,26 @@
   import {ref} from 'vue'
   import Grid from '@/components/layout/Grid.vue'
   import TokenCard from '@/components/premade/TokenCard.vue'
+  import { useTokensStore } from '@/stores/tokens'
+
+  const tokensStore = useTokensStore()
 
   const showingCreateModal = ref<boolean>(false)
-  const showingEditModal = ref<boolean>(false)
 
-  const tokenCount = ref<number>(69)
+  const newName = ref('')
+  const newUsername = ref('')
+  const newColor = ref('#ff0000')
+  const newSecret = ref('')
+
+  const createToken = () => {
+    tokensStore.addToken({
+      name: newName.value,
+      username: newUsername.value,
+      color: newColor.value,
+      secret: newSecret.value
+    })
+    showingCreateModal.value = false
+  }
 </script>
 
 <template>
@@ -42,7 +57,7 @@
           icon="solar:shield-star-line-duotone"
         />
 
-        <p>Secured accounts: {{ tokenCount }}</p>
+        <p>Secured accounts: {{ tokensStore.tokens.length }}</p>
       </Card>
     </Grid>
 
@@ -52,26 +67,14 @@
         icon="solar:lock-keyhole-line-duotone"
       />
 
-      <Grid class="spaced tight">
+      <Grid class="spaced" id="tokenGrid">
         <TokenCard
-          name="SlayFlare"
-          username="@asboy2035"
+          v-for="(token, index) in tokensStore.tokens"
+          :key="index"
+          :name="token.name"
+          :username="token.username"
           token="678455"
-          color="pink"
-        />
-
-        <TokenCard
-          name="SlayFlare"
-          username="@asboy2035"
-          token="678455"
-          color="red"
-        />
-
-        <TokenCard
-          name="SlayFlare"
-          username="@asboy2035"
-          token="678455"
-          color="blue"
+          :color="token.color"
         />
       </Grid>
     </Card>
@@ -85,13 +88,18 @@
       icon="solar:pen-new-square-line-duotone"
     />
 
-    <input id="creatorSecretInput" type="password" placeholder="Secret" />
-    <input id="creatorNameInput" type="text" placeholder="Service" />
-    <input id="creatorUsernameInput" type="text" placeholder="@Username" />
-    <input id="creatorColorInput" type="color" placeholder="Color" />
+    <input v-model="newSecret" type="password" placeholder="Secret" />
+    <input v-model="newName" type="text" placeholder="Service" />
+    <input v-model="newUsername" type="text" placeholder="@Username" />
+    <input v-model="newColor" type="color" placeholder="Color" />
+    <button @click="createToken">
+      <Icon icon="solar:pen-new-square-line-duotone" />
+      Create
+    </button>
   </Modal>
 </template>
 
-<style scoped>
-
+<style scoped lang="sass">
+  #tokenGrid
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr))
 </style>
