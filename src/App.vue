@@ -3,6 +3,7 @@
   import { useTokensStore } from '@/stores/tokens'
   import { onMounted } from 'vue'
   import { useRouter } from 'vue-router'
+  import {useHead} from '@vueuse/head'
 
   const tokensStore = useTokensStore()
   const router = useRouter()
@@ -14,6 +15,10 @@
     }
 
     await tokensStore.init()
+  })
+
+  useHead({
+    title: 'Authie'
   })
 </script>
 

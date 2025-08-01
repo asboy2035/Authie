@@ -5,6 +5,7 @@
   import Card from '@/components/layout/Card.vue'
   import CardTitle from '@/components/layout/CardTitle.vue'
   import {Icon} from '@iconify/vue'
+  import {useHead} from '@vueuse/head'
 
   const tokensStore = useTokensStore()
   const router = useRouter()
@@ -30,6 +31,10 @@
       tokensStore.encryptionKey = null
     }
   }
+
+  useHead({
+    title: 'Login'
+  })
 </script>
 
 <template>
