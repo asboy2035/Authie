@@ -25,24 +25,50 @@
     secret: props.secret
   })
 
-  const token = ref(totp.generate())
-  let interval: number
-
+  const token = ref<string>(totp.generate())
   const isExpiring = computed(() => props.timeRemaining <= 5)
+  let timeout: ReturnType<typeof setTimeout>
+  const showingCopiedIcon = ref<boolean>(false)
+
+  function scheduleNextTokenUpdate() {
+    const msRemaining = props.timeRemaining * 1000
+    timeout = setTimeout(() => {
+      token.value = totp.generate()
+      scheduleNextTokenUpdate()
+    }, msRemaining)
+  }
 
   onMounted(() => {
-    interval = setInterval(() => {
-      token.value = totp.generate()
-    }, 1000)
+    scheduleNextTokenUpdate()
   })
 
   onUnmounted(() => {
-    clearInterval(interval)
+    clearTimeout(timeout)
   })
+
+  function copyToken(
+    text: string
+  ): void {
+    navigator
+      .clipboard
+      .writeText(text)
+      .catch((err) => {
+        console.error("Failed to copy text: ", err)
+      })
+    showingCopiedIcon.value = true
+
+    setTimeout(() => {
+      showingCopiedIcon.value = false
+    }, 2000)
+  }
 </script>
 
 <template>
-  <InteriorItem class="token" :class="{ expiring: isExpiring }">
+  <InteriorItem
+    class="token"
+    :class="{ expiring: isExpiring }"
+    @click="copyToken(token)"
+  >
     <HStack class="autoSpace fullWidth">
       <HStack class="tokenContent">
         <div
@@ -56,7 +82,15 @@
             <p class="light">{{ username }}</p>
           </VStack>
 
-          <p class="tokenText">{{ token }}</p>
+          <HStack class="centered tokenNumber">
+            <p class="tokenText">{{ token }}</p>
+
+            <Icon
+              v-if="showingCopiedIcon"
+              class="copiedIcon"
+              icon="solar:clipboard-check-line-duotone"
+            />
+          </HStack>
         </VStack>
       </HStack>
 
@@ -85,22 +119,30 @@
   .tokenContent
     .tokenColor
       width: 0.25rem
-      margin: 0.5rem 0
+      margin-right: 0.5rem
       height: auto
       min-height: 3rem
       border-radius: 0.25rem
       background: var(--color)
-      opacity: 0.4
+      opacity: 0.7
 
     .tokenInfo
       .tokenName
         gap: 0.1rem
 
-        *
+        p
           margin: 0
+        h3
+          margin: -0.1rem 0
 
-      .tokenText
-        font-size: 200%
+      .tokenNumber
+        .tokenText
+          font-size: 200%
+
+        .copiedIcon
+          animation: scaleIn 0.3s ease forwards
+          width: 1.75rem
+          height: 1.75rem
 
   .tokenActions
     button

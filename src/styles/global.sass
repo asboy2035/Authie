@@ -4,13 +4,6 @@
 @use "fonts"
 @use "animations"
 
-:root
-  --contentPadding: 3rem 1rem 0
-
-@media (max-width: 35rem)
-  :root
-    --contentPadding: 0.5rem
-
 body
   display: flex
   align-items: center
@@ -48,6 +41,7 @@ svg
   color: colors.$textColor
 
 input, textarea
+  width: calc(100% - 1.5rem)
   margin: 0.25rem 0
   padding: 0.75rem
   border-radius: 0.75rem

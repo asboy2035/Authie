@@ -7,6 +7,8 @@
   import CardTitle from '@/components/layout/CardTitle.vue'
   import { Icon } from '@iconify/vue'
   import NavBar from '@/components/premade/navbar/NavBar.vue'
+  import InteriorItem from '@/components/layout/InteriorItem.vue'
+  import Grid from '@/components/layout/Grid.vue'
 
   const tokensStore = useTokensStore()
   const fileInput = ref<HTMLInputElement | null>(null)
@@ -110,25 +112,28 @@
     <Card>
       <CardTitle title="Data Management" icon="solar:database-line-duotone" />
       <p>Import or export your tokens. This is useful for backing up your data or transferring it to another device.</p>
-      <div class="button-group">
-        <button @click="triggerImport">
+      <Grid class="tight fullWidth">
+        <InteriorItem @click="triggerImport" class="dataAction">
           <Icon icon="solar:import-line-duotone" />
           Import
-        </button>
+        </InteriorItem>
         <input type="file" ref="fileInput" @change="importTokens" accept=".json" style="display: none" />
-        <button @click="exportTokens">
+        <InteriorItem @click="exportTokens" class="dataAction">
           <Icon icon="solar:export-line-duotone" />
           Export
-        </button>
-      </div>
+        </InteriorItem>
+      </Grid>
     </Card>
 
     <Card>
       <CardTitle title="Change Passcode" icon="solar:lock-keyhole-line-duotone" />
       <p>Update your encryption passcode. You will need your old passcode to do this.</p>
       <input v-model="oldPasscode" type="password" placeholder="Old Passcode" />
-      <input v-model="newPasscode" type="password" placeholder="New Passcode" />
-      <input v-model="confirmNewPasscode" type="password" placeholder="Confirm New Passcode" />
+
+      <Grid class="spaced newPassword">
+        <input v-model="newPasscode" type="password" placeholder="New Passcode" />
+        <input v-model="confirmNewPasscode" type="password" placeholder="Confirm New Passcode" />
+      </Grid>
       <p v-if="passcodeChangeError" class="error-message">{{ passcodeChangeError }}</p>
       <p v-if="passcodeChangeSuccess" class="success-message">Passcode changed successfully!</p>
       <button @click="changePasscode">
@@ -151,10 +156,14 @@
 </template>
 
 <style scoped lang="sass">
-  .button-group
+  .dataActions
     display: flex
     gap: 1rem
     margin-top: 1rem
+    width: 100%
+
+    .dataAction
+      width: 1fr
 
   .error-message
     color: red
@@ -168,4 +177,10 @@
     background-color: #ff4d4d
     &:hover
       background-color: #cc0000
+
+  .newPassword
+    margin: 0.25rem 0
+
+    input
+      margin: 0
 </style>

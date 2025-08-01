@@ -95,6 +95,7 @@ onMounted(() => {
   position: relative
   z-index: 100
   border-radius: 0
+  margin-top: 2rem
 
   &.stuck
     position: fixed
@@ -104,6 +105,7 @@ onMounted(() => {
     right: 0
     width: 100%
     padding: 0
+    margin-top: 0
 
     .titleContent
       justify-content: center
@@ -112,7 +114,7 @@ onMounted(() => {
   .titleContent
     display: flex
     z-index: 101
-    padding: 0.75rem
+    padding: 0.75rem 0.75rem 0
     width: 100%
     border-radius: 0
 

@@ -26,6 +26,7 @@
 
   .navBar
     --interior-radius: 2rem
+    padding: 0.75rem
     flex-direction: row
     z-index: 20
 </style>
