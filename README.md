@@ -1,6 +1,8 @@
 # Authie
 2FA for all.
 
+![Authie Screenshot](/screenshots/Home.png)
+
 ## Features
 - Privacy-first design with no data sent to external servers
 - Offline functionality as a fully installable PWA
