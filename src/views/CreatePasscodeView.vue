@@ -28,6 +28,11 @@
     await router.push('/')
   }
 
+  const useWithoutPasscode = async () => {
+    await tokensStore.setPasscode('')
+    await router.push('/')
+  }
+
   useHead({
     title: 'Create Passcode'
   })
@@ -47,6 +52,9 @@
     <button @click="createPasscode">
       <Icon icon="solar:pen-new-square-line-duotone" />
       Create
+    </button>
+    <button @click="useWithoutPasscode" class="secondary">
+      Use without a passcode
     </button>
   </Card>
 </template>

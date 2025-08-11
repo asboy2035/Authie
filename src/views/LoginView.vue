@@ -35,6 +35,17 @@
   useHead({
     title: 'Login'
   })
+
+  import { onMounted } from 'vue'
+
+  onMounted(async () => {
+    const salt = localStorage.getItem('passcodeSalt')
+    if (!salt) {
+      await tokensStore.setPasscode('')
+      await tokensStore.init()
+      await router.push('/')
+    }
+  })
 </script>
 
 <template>

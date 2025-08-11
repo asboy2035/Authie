@@ -71,15 +71,20 @@ export const useTokensStore = defineStore(
 
     const setPasscode = async (newPasscode: string) => {
       passcode.value = newPasscode
-      let saltBase64 = localStorage.getItem('passcodeSalt')
-      let salt: Uint8Array
-      if (saltBase64) {
-        salt = new Uint8Array(base64ToBuffer(saltBase64))
+      if (newPasscode) {
+        let saltBase64 = localStorage.getItem('passcodeSalt')
+        let salt: Uint8Array
+        if (saltBase64) {
+          salt = new Uint8Array(base64ToBuffer(saltBase64))
+        } else {
+          salt = window.crypto.getRandomValues(new Uint8Array(16))
+          localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
+        }
+        encryptionKey.value = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
       } else {
-        salt = window.crypto.getRandomValues(new Uint8Array(16))
-        localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
+        encryptionKey.value = null
+        localStorage.removeItem('passcodeSalt')
       }
-      encryptionKey.value = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
     }
 
     const addToken = (token: {
@@ -111,6 +116,12 @@ export const useTokensStore = defineStore(
         } catch (e) {
           console.error('Decryption failed:', e)
         }
+      } else if (raw) {
+        try {
+          tokens.value = JSON.parse(raw)
+        } catch (e) {
+          console.error('Failed to parse tokens:', e)
+        }
       }
     }
 
@@ -118,7 +129,12 @@ export const useTokensStore = defineStore(
       const raw = await asyncLocalStorage.getItem('tokens')
       const saltBase64 = localStorage.getItem('passcodeSalt')
 
-      if (!raw || !saltBase64) {
+      if (!saltBase64) {
+        // No salt, so no passcode is set.
+        return true
+      }
+
+      if (!raw) {
         // No tokens saved yet, so no way to verify. Assume valid for now.
         return true
       }
@@ -143,38 +159,45 @@ export const useTokensStore = defineStore(
     }
 
     const reEncryptAndSetNewPasscode = async (newPasscode: string) => {
-      const encoder = new TextEncoder()
-      // Always generate a new random 16-byte salt
-      const salt = window.crypto.getRandomValues(new Uint8Array(16))
-      // Store the new salt in localStorage as base64
-      localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
+      if (newPasscode) {
+        const encoder = new TextEncoder()
+        // Always generate a new random 16-byte salt
+        const salt = window.crypto.getRandomValues(new Uint8Array(16))
+        // Store the new salt in localStorage as base64
+        localStorage.setItem('passcodeSalt', bufferToBase64(salt.buffer))
 
-      const newDerivedKey = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
+        const newDerivedKey = await deriveKeyFromPasscodeAndSalt(newPasscode, salt)
 
-      // Encrypt current tokens with the new key
-      const iv = window.crypto.getRandomValues(new Uint8Array(12))
-      const encoded = encoder.encode(JSON.stringify(tokens.value))
+        // Encrypt current tokens with the new key
+        const iv = window.crypto.getRandomValues(new Uint8Array(12))
+        const encoded = encoder.encode(JSON.stringify(tokens.value))
 
-      const encrypted = await window.crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv },
-        newDerivedKey,
-        encoded
-      )
+        const encrypted = await window.crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv },
+          newDerivedKey,
+          encoded
+        )
 
-      const payload = {
-        iv: bufferToBase64(iv),
-        data: bufferToBase64(encrypted),
+        const payload = {
+          iv: bufferToBase64(iv),
+          data: bufferToBase64(encrypted),
+        }
+
+        await asyncLocalStorage.setItem('tokens', JSON.stringify(payload))
+
+        // Update the in-memory key and passcode
+        encryptionKey.value = newDerivedKey
+        passcode.value = newPasscode
+      } else {
+        // If the new passcode is empty, save the tokens as plaintext
+        await asyncLocalStorage.setItem('tokens', JSON.stringify(tokens.value))
+        encryptionKey.value = null
+        passcode.value = ''
+        localStorage.removeItem('passcodeSalt')
       }
-
-      await asyncLocalStorage.setItem('tokens', JSON.stringify(payload))
-
-      // Update the in-memory key and passcode
-      encryptionKey.value = newDerivedKey
-      passcode.value = newPasscode
     }
 
     watch(tokens, async (newTokens) => {
-      // Only save if an encryption key is present
       if (encryptionKey.value) {
         try {
           const iv = window.crypto.getRandomValues(new Uint8Array(12))
@@ -195,6 +218,8 @@ export const useTokensStore = defineStore(
         } catch (e) {
           console.error('Encryption failed:', e)
         }
+      } else {
+        await asyncLocalStorage.setItem('tokens', JSON.stringify(newTokens))
       }
     }, { deep: true })
 

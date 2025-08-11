@@ -14,7 +14,11 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         const tokensStore = useTokensStore()
         if (!tokensStore.encryptionKey) {
-          next('/login')
+          if (localStorage.getItem('passcodeSalt')) {
+            next('/login')
+          } else {
+            next()
+          }
         } else {
           next()
         }
@@ -24,10 +28,12 @@ const router = createRouter({
       path: '/login',
       component: LoginView,
       beforeEnter: (to, from, next) => {
-        if (localStorage.getItem('tokens')) {
+        if (localStorage.getItem('passcodeSalt')) {
           next()
-        } else {
+        } else if (!localStorage.getItem('tokens')) {
           next('/create-passcode')
+        } else {
+          next('/')
         }
       }
     },
@@ -37,7 +43,7 @@ const router = createRouter({
       component: SettingsView,
       beforeEnter: (to, from, next) => {
         const tokensStore = useTokensStore()
-        if (!tokensStore.encryptionKey) {
+        if (!tokensStore.encryptionKey && localStorage.getItem('passcodeSalt')) {
           next('/login')
         } else {
           next()

@@ -84,11 +84,13 @@
       return
     }
 
-    // Verify old passcode
-    const isOldPasscodeValid = await tokensStore.verifyPasscode(oldPasscode.value)
-    if (!isOldPasscodeValid) {
-      passcodeChangeError.value = 'Incorrect old passcode.'
-      return
+    if (tokensStore.encryptionKey) {
+      // Verify old passcode
+      const isOldPasscodeValid = await tokensStore.verifyPasscode(oldPasscode.value)
+      if (!isOldPasscodeValid) {
+        passcodeChangeError.value = 'Incorrect old passcode.'
+        return
+      }
     }
 
     try {
@@ -101,6 +103,32 @@
     } catch (error) {
       console.error('Error changing passcode:', error)
       passcodeChangeError.value = 'Failed to change passcode. Please try again.'
+    }
+  }
+
+  const removePasscode = async () => {
+    passcodeChangeError.value = ''
+    passcodeChangeSuccess.value = false
+
+    if (tokensStore.encryptionKey) {
+      // Verify old passcode
+      const isOldPasscodeValid = await tokensStore.verifyPasscode(oldPasscode.value)
+      if (!isOldPasscodeValid) {
+        passcodeChangeError.value = 'Incorrect old passcode.'
+        return
+      }
+    }
+
+    try {
+      await tokensStore.reEncryptAndSetNewPasscode('')
+
+      passcodeChangeSuccess.value = true
+      oldPasscode.value = ''
+      newPasscode.value = ''
+      confirmNewPasscode.value = ''
+    } catch (error) {
+      console.error('Error removing passcode:', error)
+      passcodeChangeError.value = 'Failed to remove passcode. Please try again.'
     }
   }
 </script>
@@ -125,7 +153,7 @@
       </Grid>
     </Card>
 
-    <Card>
+    <Card v-if="tokensStore.encryptionKey">
       <CardTitle title="Change Passcode" icon="solar:lock-keyhole-line-duotone" />
       <p>Update your encryption passcode. You will need your old passcode to do this.</p>
       <input v-model="oldPasscode" type="password" placeholder="Old Passcode" />
@@ -139,6 +167,24 @@
       <button @click="changePasscode">
         <Icon icon="solar:key-line-duotone" />
         Change Passcode
+      </button>
+      <button @click="removePasscode" class="secondary">
+        Use without a passcode
+      </button>
+    </Card>
+
+    <Card v-else>
+      <CardTitle title="Set Passcode" icon="solar:lock-keyhole-line-duotone" />
+      <p>Secure your account with a passcode.</p>
+      <Grid class="spaced newPassword">
+        <input v-model="newPasscode" type="password" placeholder="New Passcode" />
+        <input v-model="confirmNewPasscode" type="password" placeholder="Confirm New Passcode" />
+      </Grid>
+      <p v-if="passcodeChangeError" class="error-message">{{ passcodeChangeError }}</p>
+      <p v-if="passcodeChangeSuccess" class="success-message">Passcode set successfully!</p>
+      <button @click="changePasscode">
+        <Icon icon="solar:key-line-duotone" />
+        Set Passcode
       </button>
     </Card>
 

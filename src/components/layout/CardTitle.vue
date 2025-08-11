@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import {Icon} from "@iconify/vue"
-import HStack from "@/components/layout/HStack.vue"
+  import {Icon} from "@iconify/vue"
+  import HStack from "@/components/layout/HStack.vue"
 
-defineProps<{
-  title: string
-  icon: string
-}>()
+  defineProps<{
+    title: string
+    icon: string
+  }>()
 </script>
 
 <template>
-  <h-stack class="cardTitle">
+  <HStack class="cardTitle">
     <icon :icon="icon" />
     <h2>{{ title }}</h2>
-  </h-stack>
+  </HStack>
 </template>
 
 <style scoped lang="sass">
@@ -26,5 +26,5 @@ defineProps<{
     padding: 0.25rem 0.3rem
 
     h2
-      margin: 0
+      margin: 0.25rem 0 0
 </style>
